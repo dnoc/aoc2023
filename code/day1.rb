@@ -18,7 +18,6 @@ end
 def harvest_numbers(input)
   input.chomp!
   if input.nil? || input.empty?
-    console.log("empty string")
     return 0
   end
 
@@ -46,7 +45,6 @@ end
 def run_test2
   coords = TEST_INPUT2.map do |s|
     unspelled = unspell_digits(s)
-    puts unspelled
     harvest_numbers(unspelled)
   end
 
@@ -57,7 +55,6 @@ def get_solution
   lines = File.readlines('input/day1.txt')
   coords = lines.map do |s|
     unspelled = unspell_digits(s)
-    puts unspelled
     harvest_numbers(unspelled)
   end
 
