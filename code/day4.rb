@@ -1,26 +1,47 @@
 
 
 class Card
-  def initialize(line)
-    if /^Card \d{1,3}: (?<winners>[0-9 ]+) \| (?<numbers>[0-9 ]+)$/ =~ line
+  attr_reader :id, :matches
+
+  def initialize(line)  
+    if /^Card\s+(?<id>\d{1,3}): (?<winners>[0-9 ]+) \| (?<numbers>[0-9 ]+)$/ =~ line
+      @id = id
       @winners = winners.split " "
       @numbers = numbers.split " "
     end
+    @matches = calc_matches
   end
 
-  def score
+  def calc_matches
     matches = 0
     @numbers.each do |n|
       if @winners.include?(n)
         matches += 1
       end
     end
-
-    if matches == 0
-      return 0
-    end
-    2**(matches - 1)
+    matches
   end
+
+  def score
+    if @matches > 0
+      2**(@matches - 1)
+    else
+      0
+    end
+  end
+end
+
+def count_cards(cards, subset)
+  # puts subset.map(&:id).inspect
+  total = subset.size
+  cards.each_with_index do |card, index|
+    next unless subset.include?(card)
+    matches = card.matches
+    if matches > 0
+      total += count_cards(cards, cards[index+1..index+matches])
+    end
+  end
+  total
 end
 
 def run
@@ -31,5 +52,6 @@ def run
   puts cards.sum { |c| c.score }
 
   puts "Part 2"
+  puts count_cards(cards, cards)
 end
 run
