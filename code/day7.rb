@@ -14,7 +14,9 @@ class Hand
       h[c] += 1
     end
     
-    if char_counts[cards[0]] == 5
+    if char_counts.has_key? "J"
+      joker_special_case(char_counts)
+    elsif char_counts[cards[0]] == 5
       :five_of_a_kind
     elsif char_counts[cards[0]] == 4 || char_counts[cards[1]] == 4
       :four_of_a_kind
@@ -24,7 +26,7 @@ class Hand
       else
         :three_of_a_kind
       end
-    else 
+    else
       twos = char_counts.select { |k, v| v == 2 }
       if twos.size == 2
         :two_pair
@@ -33,6 +35,24 @@ class Hand
       else
         :high_card
       end
+    end
+  end
+
+  def joker_special_case(char_counts)
+    max = char_counts.max_by { |k, v| k == "J" ? 0 : v }[1]
+    total = char_counts["J"] + max
+    if total >= 5
+      :five_of_a_kind
+    elsif total == 4
+      :four_of_a_kind
+    elsif total == 3
+      if char_counts["J"] == 1 && char_counts.values.sort == [1, 2, 2]
+        :full_house
+      else
+        :three_of_a_kind
+      end
+    else
+      :one_pair
     end
   end
 end
@@ -62,18 +82,55 @@ def get_sum(hands)
 
   sum = 0
   all_hands.reverse.each_with_index do |h, i|
-    sum += h.bid * i
+    # puts "#{h.cards} #{h.bid} rank #{i}"
+    # if h.type == :three_of_a_kind && h.cards.include?("J")
+    #   puts "#{h.cards} rank #{i+1}"
+    # end
+    sum += h.bid * (i + 1)
   end
   sum
 end
 
-def part1
+def value_of(card)
+  if card == "A"
+    14
+  elsif card == "K"
+    13
+  elsif card == "Q"
+    12
+  elsif card == "J"
+    1
+  elsif card == "T"
+    10
+  else
+    card.to_i
+  end
+end
+
+def compare_cards(cards1, cards2)
+  5.times do |i|
+    a = cards1[i]
+    b = cards2[i]
+    if value_of(a) > value_of(b)
+      return -1
+    elsif value_of(a) < value_of(b)
+      return 1
+    end
+  end
+  puts "Should not be equal #{cards1} #{cards2}"
+  0
+end
+
+# Too low 253009986
+# Too low 253295076
+def run
   lines = File.readlines("./input/day7.txt").map(&:chomp)
   hands = build_hands(lines)
 
-  # hands = hands.sort { |a, b|  }
+  hands.each_pair do |k, v|
+    hands[k] = v.sort { |a, b| compare_cards(a.cards, b.cards) }
+  end
 
-  puts "Part 1"
   puts get_sum(hands)
 end
-part1
+run
